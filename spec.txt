@@ -1,0 +1,38 @@
+ds init <folder> //creates folder, creates symlink from ~/.ds-folder to folder
+
+ds add <file> //moves file to ds-folder and creates a symlink to it in its place
+              //also adds a pair of location and name, probably with some logic to guarantee uniquenes
+ds rem <file> //replaces the symlink with a copy of the file in ds-folder and marks the file to be unsynced
+              //when all cloned computers have removed it (via sync?) the file in ds-folder is removed
+              //NOTE: this would simply remove the file from all other computers, not ideal
+
+ds clone <ds-folder> //makes symlinks to files in ds-folder, makes a symlink ~/.ds-folder to ds-folder
+                     //adds this computer to a list of cloned computers
+
+ds list //lists all synced files
+
+//tracker-file/register-file
+needs to keep track of what files are used, but should probably do it
+by tracking exclusions, rather than inclusions, as most computers will
+probably use all, or almost all, files.
+
+files:
+  filename-in-ds-folder: path relative to ~
+
+computers:
+  hostname?:
+    exclusions
+
+
+First version:
+
+ds init <folder> //creates folder, creates symlink from ~/.ds-folder to folder
+                 //creates a file in ds-folder, <hostname>.(yaml?json?something human readable)
+
+ds add <file> //moves file to ds-folder, replacing it with a symlink, and adds an entry to <hostname>.<something>
+
+ds rem <file> //copies file from ds-folder to replace the file, also removes an entry from <hostname>.<something>
+
+ds clone <ds-folder> <hostname> // clones the ds setup from <hostname>.<something> to the current computer
+                                // TODO: lots of thinking, should probably be an interactive command as it's 
+                                // quite destructive
