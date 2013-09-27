@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"path/filepath"
 )
@@ -18,25 +18,51 @@ func init() {
 		&addopts)
 }
 
-func (a *Addopts) Execute(args []string) error {
-	if len(args) != 1 {
-		fmt.Println("Add needs exactly one argument, the file to be added to dotsync")
-		os.Exit(1)
+func (a *Addopts) Execute(args []string) (err error) {
+	if len(args) < 1 {
+		return errors.New("Add needs at least one argument: the file(s) to be added to dotsync")
 	}
 
-	path, erp := filepath.Abs(args[0])
-	d(erp)
-	pathInDS := filepath.Join(dsFolderPath(), filepath.Base(path))
+	listfile, err := readListFile()
+	if err != nil {
+		return
+	}
 
-	d(os.Rename(path, pathInDS)) //TODO: deal with errors by renaming files if necessary
-	d(os.Symlink(pathInDS, path))
+	errs := make([]error, 0)
+	for _, arg := range args {
+		path, err := filepath.Abs(arg)
+		if err != nil {
+			errs = append(errs, err)
+			err = nil
+			continue
+		}
+		pathInDS := filepath.Join(dsFolderpath, filepath.Base(path))
 
-	listfile, erp := readListFile()
-	d(erp)
+		err = os.Rename(path, pathInDS) //TODO: deal with errors by renaming files if necessary
+		if err != nil {
+			errs = append(errs, err)
+			err = nil
+			continue
+		}
+		err = os.Symlink(pathInDS, path)
+		if err != nil {
+			errs = append(errs, err)
+			err = nil
+			continue
+		}
 
-	listfile[filepath.ToSlash(relativeToHome(path))] = filepath.Base(pathInDS)
+		listfile[filepath.ToSlash(relativeToHome(path))] = filepath.Base(pathInDS)
+	}
 
-	d(writeListFile(listfile))
+	err = writeListFile(listfile)
+	if err != nil {
+		errs = append(errs, err)
+	}
+
+	if len(errs) > 0 {
+		errColl := ErrorCollection(errs)
+		return &errColl
+	}
 
 	return nil
 }

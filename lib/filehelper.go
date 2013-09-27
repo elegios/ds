@@ -12,13 +12,13 @@ func dsFolderPath() string {
 	return filepath.Join(homePath(), ".ds-folder")
 }
 
-func listFileName() string {
+func listFilePath() string {
 	hostname, _ := os.Hostname()
 	return filepath.Join(dsFolderPath(), hostname)
 }
 
 func listFile() (*os.File, error) {
-	file, err := os.Open(listFileName())
+	file, err := os.Open(listFilepath)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func readListFile() (listfile map[string]string, err error) {
 }
 
 func writeListFile(listfile map[string]string) (err error) {
-	file, err := os.Create(listFileName())
+	file, err := os.Create(listFilepath)
 	if err != nil {
 		return
 	}
@@ -56,7 +56,7 @@ func writeListFile(listfile map[string]string) (err error) {
 
 func relativeToHome(path string) (relpath string) {
 	path, _ = filepath.Abs(path)
-	relpath, _ = filepath.Rel(homePath(), path)
+	relpath, _ = filepath.Rel(homepath, path)
 	return
 }
 

@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"path/filepath"
 )
@@ -19,32 +19,57 @@ func init() {
 		&remopts)
 }
 
-func (r *Remopts) Execute(args []string) error {
-	if len(args) != 1 {
-		fmt.Println("Rem needs exactly one argument, the file to remove from dotsync")
-		os.Exit(1)
+func (r *Remopts) Execute(args []string) (err error) {
+	if len(args) < 1 {
+		return errors.New("Rem needs at least one argument: the file(s) to remove from dotsync")
 	}
 
-	path, erp := filepath.Abs(args[0])
-	d(erp)
-
-	listfile, erp := readListFile()
-	d(erp)
-
-	key := filepath.ToSlash(relativeToHome(path))
-	pathInDS := filepath.Join(dsFolderPath(), listfile[key])
-
-	erp = os.Remove(path)
-	d(erp)
-	if r.DeleteMode {
-		d(os.Rename(pathInDS, path))
-	} else {
-		d(cp(pathInDS, path))
+	listfile, err := readListFile()
+	if err != nil {
+		return
 	}
 
-	delete(listfile, key)
+	errs := make([]error, 0)
+	for _, arg := range args {
+		path, err := filepath.Abs(arg)
+		if err != nil {
+			errs = append(errs, err)
+			err = nil
+			continue
+		}
 
-	d(writeListFile(listfile))
+		key := filepath.ToSlash(relativeToHome(path))
+		pathInDS := filepath.Join(dsFolderpath, listfile[key])
+
+		err = os.Remove(path)
+		if err != nil {
+			errs = append(errs, err)
+			err = nil
+			continue
+		}
+		if r.DeleteMode {
+			err = os.Rename(pathInDS, path)
+		} else {
+			err = cp(pathInDS, path)
+		}
+		if err != nil {
+			errs = append(errs, err)
+			err = nil
+			continue
+		}
+
+		delete(listfile, key)
+	}
+
+	err = writeListFile(listfile)
+	if err != nil {
+		errs = append(errs, err)
+	}
+
+	if len(errs) > 0 {
+		errColl := ErrorCollection(errs)
+		return &errColl
+	}
 
 	return nil
 }

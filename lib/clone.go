@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"path/filepath"
 )
@@ -18,28 +18,51 @@ func init() {
 		&cloneopt)
 }
 
-func (c *Cloneopt) Execute(args []string) error {
+func (c *Cloneopt) Execute(args []string) (err error) {
 	if len(args) != 2 {
-		fmt.Println("clone needs exactly two arguments, the ds-folder and the profile to be cloned")
-		os.Exit(1)
+		return errors.New("clone needs exactly two arguments, the ds-folder and the profile to be cloned")
 	}
 
-	dsFolder, erp := filepath.Abs(args[0])
-	d(erp)
-	d(os.Symlink(dsFolder, dsFolderPath()))
+	dsFolder, err := filepath.Abs(args[0])
+	if err != nil {
+		return
+	}
+	err = os.Symlink(dsFolder, dsFolderpath)
+	if err != nil {
+		return
+	}
 
-	d(cp(filepath.Join(dsFolder, args[1]), listFileName()))
+	err = cp(filepath.Join(dsFolder, args[1]), listFilepath)
+	if err != nil {
+		return
+	}
 
-	listfile, erp := readListFile()
-	d(erp)
+	listfile, err := readListFile()
+	if err != nil {
+		return
+	}
 
-	home := homePath()
-	dsFolder = dsFolderPath()
+	errs := make([]error, 0)
 	for relpath, inDSpath := range listfile {
-		abspath := filepath.Join(home, relpath)
+		abspath := filepath.Join(homepath, filepath.FromSlash(relpath))
 		//Remove previous one if it exists, then add a symlink
 		os.Remove(abspath)
-		d(os.Symlink(filepath.Join(dsFolder, inDSpath), abspath))
+		err = os.MkdirAll(filepath.Dir(abspath), permissions)
+		if err != nil {
+			errs = append(errs, err)
+			err = nil
+			continue
+		}
+		err = os.Symlink(filepath.Join(dsFolderpath, inDSpath), abspath)
+		if err != nil {
+			errs = append(errs, err)
+			err = nil
+		}
+	}
+
+	if len(errs) > 0 {
+		errColl := ErrorCollection(errs)
+		return &errColl
 	}
 
 	return nil

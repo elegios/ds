@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"path/filepath"
 )
@@ -18,19 +18,26 @@ func init() {
 		&initopts)
 }
 
-func (i *Initopts) Execute(args []string) error {
+func (i *Initopts) Execute(args []string) (err error) {
 	if len(args) != 1 {
-		fmt.Println("Init needs exactly one argument, the path to the folder to create")
-		os.Exit(1) //TODO: return with error instead
+		return errors.New("init needs exactly one argument, the ds-folder")
 	}
 
-	path, erp := filepath.Abs(args[0])
-	d(erp)
-	d(os.MkdirAll(path, permissions))
+	path, err := filepath.Abs(args[0])
+	if err != nil {
+		return
+	}
+	err = os.MkdirAll(path, permissions)
+	if err != nil {
+		return
+	}
 
-	d(os.Symlink(path, dsFolderPath()))
+	err = os.Symlink(path, dsFolderpath)
+	if err != nil {
+		return
+	}
 
-	writeListFile(map[string]string{})
+	err = writeListFile(map[string]string{})
 
-	return nil
+	return
 }
