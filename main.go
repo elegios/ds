@@ -1,7 +1,7 @@
 package main
 
 import (
-	"./lib"
+	"github.com/elegios/ds/lib"
 )
 
 func main() {
