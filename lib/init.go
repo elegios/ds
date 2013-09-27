@@ -24,16 +24,11 @@ func (i *Initopts) Execute(args []string) error {
 
 	path, erp := filepath.Abs(args[0])
 	d(erp)
-	os.MkdirAll(path, permissions)
+	d(os.MkdirAll(path, permissions))
 
-	erp = os.Symlink(path, dsFolderPath())
-	d(erp)
+	d(os.Symlink(path, dsFolderPath()))
 
-	file, erp := os.Create(listFileName()) //TODO: use helpermethod instead
-	d(erp)
-	defer file.Close()
-
-	json.NewEncoder(file).Encode(map[string]string{})
+	writeListFile(map[string]string{})
 
 	return nil
 }

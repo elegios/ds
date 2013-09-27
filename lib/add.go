@@ -25,8 +25,8 @@ func (a *Addopts) Execute(args []string) error {
 	d(erp)
 	pathInDS := filepath.Join(dsFolderPath(), filepath.Base(path))
 
-	os.Rename(path, pathInDS) //TODO: deal with errors by renaming files if necessary
-	os.Symlink(pathInDS, path)
+	d(os.Rename(path, pathInDS)) //TODO: deal with errors by renaming files if necessary
+	d(os.Symlink(pathInDS, path))
 
 	listfile, erp := readListFile()
 	d(erp)
