@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,7 +12,10 @@ type Initopts struct {
 var initopts Initopts
 
 func init() {
-	Flag.AddCommand("init", "Creates a dotsync folder", "TODO", &initopts)
+	Flags.AddCommand("init",
+		"Creates a dotsync folder",
+		"TODO",
+		&initopts)
 }
 
 func (i *Initopts) Execute(args []string) error {

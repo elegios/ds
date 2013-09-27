@@ -12,7 +12,10 @@ type Addopts struct {
 var addopts Addopts
 
 func init() {
-	Flag.AddCommand("add", "Adds the given file to dotsync", "TODO", &addopts)
+	Flags.AddCommand("add",
+		"Adds the given file to dotsync",
+		"TODO",
+		&addopts)
 }
 
 func (a *Addopts) Execute(args []string) error {

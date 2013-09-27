@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	lib.Flag.Parse()
+	lib.Flags.Parse()
 }

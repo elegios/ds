@@ -13,7 +13,7 @@ type Remopts struct {
 var remopts Remopts
 
 func init() {
-	Flag.AddCommand("rem",
+	Flags.AddCommand("rem",
 		"Removes the given file from dotsync",
 		"TODO",
 		&remopts)
