@@ -9,7 +9,7 @@ import (
 )
 
 func dsFolderPath() string {
-	return filepath.Join(homePath(), ".ds-folder")
+	return filepath.Join(homePath(), ".dotsync")
 }
 
 func listFilePath() string {
