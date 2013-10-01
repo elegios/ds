@@ -7,6 +7,8 @@ import (
 )
 
 type Addopts struct {
+	Mine  bool `short:"m" long:"keep-mine" description:"Keep the current file in favor of one previously in dotsync"`
+	Other bool `short:"o" long:"keep-other" description:"Keep the file in dotsync instead of the current one"`
 }
 
 var addopts Addopts
@@ -38,11 +40,17 @@ func (a *Addopts) Execute(args []string) (err error) {
 		}
 		pathInDS := filepath.Join(dsFolderpath, filepath.Base(path))
 
-		err = os.Rename(path, pathInDS) //TODO: deal with errors by renaming files if necessary
-		if err != nil {
-			errs = append(errs, err)
-			err = nil
-			continue
+		_, err = os.Stat(pathInDS)
+		switch {
+		case a.Mine && a.Other:
+			return errors.New("Conflicting options: --keep-mine and --keep-other")
+		case a.Mine || os.IsNotExist(err):
+			os.Remove(pathInDS)
+			os.Rename(path, pathInDS)
+		case a.Other:
+			os.Remove(path)
+		default:
+			return errors.New("A file with that name is already in dotsync, use options --keep-mine or --keep-other")
 		}
 		err = os.Symlink(pathInDS, path)
 		if err != nil {
